@@ -1,0 +1,54 @@
+# tempo-values.yaml
+# Grafana Tempo in monolithic mode for development/learning
+
+tempo:
+  reportingEnabled: false
+
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+
+  # Enable service graph and span metrics generation
+  metricsGenerator:
+    enabled: true
+    remoteWriteUrl: ""   # set to your Mimir URL if you want generated metrics
+
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+    jaeger:
+      protocols:
+        thrift_http:
+          endpoint: "0.0.0.0:14268"
+
+# Monolithic (all-in-one) mode
+ingester:
+  replicas: 1
+
+distributor:
+  replicas: 1
+
+querier:
+  replicas: 1
+
+queryFrontend:
+  replicas: 1
+
+compactor:
+  replicas: 1
+
+storage:
+  trace:
+    backend: local
+
+persistence:
+  enabled: true
+  size: 5Gi

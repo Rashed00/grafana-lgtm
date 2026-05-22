@@ -1,0 +1,39 @@
+# grafana-values.yaml
+# Grafana with both Mimir (metrics) and Loki (logs) datasources provisioned
+
+adminPassword: "grafana-admin"   # change in production
+
+service:
+  type: ClusterIP
+  port: 80
+
+persistence:
+  enabled: false
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Mimir
+        type: prometheus
+        url: http://mimir-nginx.mimir.svc.cluster.local/prometheus
+        access: proxy
+        isDefault: true
+        jsonData:
+          httpMethod: POST
+          prometheusType: Mimir
+
+      - name: Loki
+        type: loki
+        url: http://loki.loki.svc.cluster.local:3100
+        access: proxy
+        jsonData:
+          maxLines: 1000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi

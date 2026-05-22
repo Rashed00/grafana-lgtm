@@ -1,0 +1,44 @@
+# deployment.yaml
+# Annotated so the OTel Operator auto-injects the Python SDK
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+      annotations:
+        # Tells the OTel Operator to inject Python auto-instrumentation
+        instrumentation.opentelemetry.io/inject-python: "true"
+    spec:
+      containers:
+        - name: myapp
+          image: myapp:latest       # replace with your registry image if needed
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: "myapp"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "deployment.environment=dev"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

@@ -1,0 +1,32 @@
+# kubelet-svc-monitor.yaml
+# ServiceMonitor for kubelet metrics (/metrics on port 10250)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kubelet
+  namespace: default
+  labels:
+    instance: primary
+spec:
+  endpoints:
+    - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      honorLabels: true
+      interval: 60s
+      metricRelabelings:
+        - action: keep
+          regex: kubelet_(pod_worker_duration_seconds_count|pod_start_duration_seconds_count|cgroup_manager_duration_seconds_count|pleg_relist_duration_seconds_count|runtime_operations_total|runtime_operations_errors_total|runtime_operations_duration_seconds_count|volume_stats_capacity_bytes|volume_stats_used_bytes|running_pod_count|running_container_count)
+          sourceLabels:
+            - __name__
+      port: https-metrics
+      relabelings:
+        - sourceLabels: [__metrics_path__]
+          targetLabel: metrics_path
+      scheme: https
+      tlsConfig:
+        insecureSkipVerify: true
+  namespaceSelector:
+    matchNames:
+      - kube-system
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubelet

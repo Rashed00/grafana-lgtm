@@ -1,0 +1,61 @@
+# grafana-values.yaml
+# Grafana with Loki, Mimir, and Tempo datasources
+
+adminPassword: "grafana-admin"
+
+service:
+  type: ClusterIP
+  port: 80
+
+persistence:
+  enabled: false
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Tempo
+        type: tempo
+        url: http://tempo-query-frontend.tempo.svc.cluster.local:3100
+        access: proxy
+        isDefault: false
+        jsonData:
+          httpMethod: GET
+          tracesToLogsV2:
+            datasourceUid: loki
+            spanStartTimeShift: "-1h"
+            spanEndTimeShift: "1h"
+            filterByTraceID: true
+            filterBySpanID: false
+          serviceMap:
+            datasourceUid: mimir
+          lokiSearch:
+            datasourceUid: loki
+
+      - name: Mimir
+        type: prometheus
+        url: http://mimir-nginx.mimir.svc.cluster.local/prometheus
+        access: proxy
+        jsonData:
+          httpMethod: POST
+          prometheusType: Mimir
+
+      - name: Loki
+        type: loki
+        url: http://loki.loki.svc.cluster.local:3100
+        access: proxy
+        jsonData:
+          maxLines: 1000
+          derivedFields:
+            - datasourceUid: tempo
+              matcherRegex: '"traceID":"(\w+)"'
+              name: TraceID
+              url: "$${__value.raw}"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi

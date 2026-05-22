@@ -1,0 +1,72 @@
+# alloy-configmap.yaml
+# Alloy configuration – replaces Grafana Agent Operator for log collection
+# Equivalent to: GrafanaAgent + LogsInstance + PodLogs CRDs
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-logs-config
+  namespace: alloy-logs
+data:
+  config.alloy: |
+    // ── Kubernetes pod discovery ─────────────────────────────────────────────
+    discovery.kubernetes "pods" {
+      role = "pod"
+    }
+
+    // ── Filter to the nginx namespace only ───────────────────────────────────
+    discovery.relabel "nginx_pods" {
+      targets = discovery.kubernetes.pods.targets
+
+      rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        regex         = "nginx"
+        action        = "keep"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        target_label  = "namespace"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_name"]
+        target_label  = "pod"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_container_name"]
+        target_label  = "container"
+      }
+    }
+
+    // ── Tail log files from discovered pods ──────────────────────────────────
+    loki.source.kubernetes "nginx_logs" {
+      targets    = discovery.relabel.nginx_pods.output
+      forward_to = [loki.process.pipeline.receiver]
+    }
+
+    // ── Pipeline: extract method + status_code from Nginx access logs ────────
+    loki.process "pipeline" {
+      forward_to = [loki.write.loki_backend.receiver]
+
+      stage.regex {
+        expression = "^(?P<remote_addr>\\S+) - \\S+ \\[.*?\\] \"(?P<method>\\S+) \\S+ \\S+\" (?P<status_code>\\d+) \\d+.*$"
+      }
+
+      stage.labels {
+        values = {
+          method      = "",
+          status_code = "",
+        }
+      }
+    }
+
+    // ── Remote write to Loki ─────────────────────────────────────────────────
+    loki.write "loki_backend" {
+      endpoint {
+        url = "http://loki.loki.svc.cluster.local:3100/loki/api/v1/push"
+      }
+      external_labels = {
+        cluster = "my-cluster",
+      }
+    }

@@ -1,0 +1,29 @@
+# alloy-helm-values.yaml
+# Helm values for grafana/alloy when collecting logs
+controller:
+  type: daemonset   # one agent per node to tail local log files
+
+alloy:
+  configMap:
+    create: false
+    name: alloy-logs-config
+    key: config.alloy
+
+  mounts:
+    varlog: true          # mount /var/log from the host node
+    dockercontainers: true
+
+serviceAccount:
+  create: true
+  name: alloy-logs
+
+rbac:
+  create: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

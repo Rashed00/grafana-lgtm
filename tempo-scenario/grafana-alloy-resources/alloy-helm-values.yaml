@@ -1,0 +1,36 @@
+# alloy-helm-values.yaml
+# Helm values for grafana/alloy when collecting traces
+controller:
+  type: deployment
+
+alloy:
+  configMap:
+    create: false
+    name: alloy-traces-config
+    key: config.alloy
+
+  # Expose OTLP ports so applications can reach Alloy
+  extraPorts:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+      protocol: TCP
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+      protocol: TCP
+
+service:
+  type: ClusterIP
+
+serviceAccount:
+  create: true
+  name: alloy-traces
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

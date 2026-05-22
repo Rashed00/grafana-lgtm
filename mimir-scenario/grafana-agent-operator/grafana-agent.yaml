@@ -1,0 +1,53 @@
+# grafana-agent.yaml
+# Root GrafanaAgent resource for metrics collection
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: GrafanaAgent
+metadata:
+  name: grafana-agent-metrics
+  namespace: default
+  labels:
+    app: grafana-agent-metrics
+spec:
+  image: grafana/agent:latest
+  logLevel: info
+  serviceAccountName: grafana-agent-metrics
+  metrics:
+    instanceSelector:
+      matchLabels:
+        agent: grafana-agent-metrics
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-agent-metrics
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana-agent-metrics
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/metrics
+      - nodes/proxy
+      - services
+      - endpoints
+      - pods
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs: ["/metrics", "/metrics/cadvisor"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-agent-metrics
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: grafana-agent-metrics
+subjects:
+  - kind: ServiceAccount
+    name: grafana-agent-metrics
+    namespace: default

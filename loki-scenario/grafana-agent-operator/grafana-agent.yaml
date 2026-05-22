@@ -1,0 +1,53 @@
+# grafana-agent.yaml
+# Root GrafanaAgent resource – discovers LogsInstance sub-resources
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: GrafanaAgent
+metadata:
+  name: grafana-agent-logs
+  namespace: default
+  labels:
+    app: grafana-agent-logs
+spec:
+  image: grafana/agent:latest
+  logLevel: info
+  serviceAccountName: grafana-agent
+  logs:
+    instanceSelector:
+      matchLabels:
+        agent: grafana-agent-logs
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-agent
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana-agent-logs
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/proxy
+      - services
+      - endpoints
+      - pods
+      - events
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-agent-logs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: grafana-agent-logs
+subjects:
+  - kind: ServiceAccount
+    name: grafana-agent
+    namespace: default

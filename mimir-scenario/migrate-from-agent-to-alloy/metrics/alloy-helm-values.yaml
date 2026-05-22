@@ -1,0 +1,25 @@
+# alloy-helm-values.yaml
+# Helm values for grafana/alloy when collecting metrics
+controller:
+  type: deployment
+
+alloy:
+  configMap:
+    create: false
+    name: alloy-metrics-config
+    key: config.alloy
+
+serviceAccount:
+  create: true
+  name: alloy-metrics
+
+rbac:
+  create: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

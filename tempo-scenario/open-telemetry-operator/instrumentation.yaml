@@ -1,0 +1,27 @@
+# instrumentation.yaml
+# Instrumentation – auto-instruments Python applications
+# Pods annotated with instrumentation.opentelemetry.io/inject-python: "true"
+# will have the OTel Python SDK injected automatically
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: python-instrumentation
+  namespace: default
+spec:
+  exporter:
+    endpoint: http://otel-collector-collector.default.svc.cluster.local:4318
+
+  propagators:
+    - tracecontext
+    - baggage
+
+  sampler:
+    type: parentbased_traceidratio
+    argument: "1"   # 100% sampling for development
+
+  python:
+    env:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://otel-collector-collector.default.svc.cluster.local:4318
+      - name: OTEL_EXPORTER_OTLP_PROTOCOL
+        value: http/protobuf

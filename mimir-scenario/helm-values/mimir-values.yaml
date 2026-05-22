@@ -1,0 +1,79 @@
+# mimir-values.yaml
+# Grafana Mimir in monolithic mode with MinIO as object storage
+
+mimir:
+  structuredConfig:
+    multitenancy_enabled: false
+
+    common:
+      storage:
+        backend: s3
+        s3:
+          endpoint: mimir-minio.mimir.svc.cluster.local:9000
+          access_key_id: minio-admin          # <-- replace
+          secret_access_key: minio-password   # <-- replace
+          insecure: true
+
+    blocks_storage:
+      s3:
+        bucket_name: mimir-blocks
+    alertmanager_storage:
+      s3:
+        bucket_name: mimir-alertmanager
+    ruler_storage:
+      s3:
+        bucket_name: mimir-ruler
+
+minio:
+  enabled: true
+  rootUser: minio-admin        # <-- match above
+  rootPassword: minio-password # <-- match above
+  buckets:
+    - name: mimir-blocks
+      policy: none
+      purge: false
+    - name: mimir-alertmanager
+      policy: none
+      purge: false
+    - name: mimir-ruler
+      policy: none
+      purge: false
+  persistence:
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Single-binary (monolithic) deployment for dev/learning
+nginx:
+  enabled: true
+
+# Minimal replicas for a local cluster
+ingester:
+  replicas: 1
+  zoneAwareReplication:
+    enabled: false
+
+distributor:
+  replicas: 1
+
+querier:
+  replicas: 1
+
+query_frontend:
+  replicas: 1
+
+store_gateway:
+  replicas: 1
+  zoneAwareReplication:
+    enabled: false
+
+compactor:
+  replicas: 1
+
+alertmanager:
+  enabled: false
+
+ruler:
+  enabled: false

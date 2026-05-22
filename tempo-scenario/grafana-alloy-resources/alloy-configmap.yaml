@@ -1,0 +1,40 @@
+# alloy-configmap.yaml
+# Alloy configuration – acts as an OTLP receiver and forwards to Tempo
+# Replaces the OpenTelemetry Operator Collector for trace ingestion
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-traces-config
+  namespace: alloy-traces
+data:
+  config.alloy: |
+    // ── OTLP receiver (gRPC + HTTP) ──────────────────────────────────────────
+    otelcol.receiver.otlp "default" {
+      grpc {
+        endpoint = "0.0.0.0:4317"
+      }
+      http {
+        endpoint = "0.0.0.0:4318"
+      }
+
+      output {
+        traces = [otelcol.processor.batch.default.input]
+      }
+    }
+
+    // ── Batch processor ───────────────────────────────────────────────────────
+    otelcol.processor.batch "default" {
+      output {
+        traces = [otelcol.exporter.otlp.tempo.input]
+      }
+    }
+
+    // ── Export to Tempo ───────────────────────────────────────────────────────
+    otelcol.exporter.otlp "tempo" {
+      client {
+        endpoint = "tempo-distributor.tempo.svc.cluster.local:4317"
+        tls {
+          insecure = true
+        }
+      }
+    }

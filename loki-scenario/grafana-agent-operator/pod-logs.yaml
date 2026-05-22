@@ -1,0 +1,26 @@
+# pod-logs.yaml
+# PodLogs – selects Nginx pods and enriches logs with pipeline stages
+# The regex stage extracts "method" and "status_code" from Nginx access logs
+# e.g.: 192.168.1.1 - - [01/Jan/2024] "GET /path HTTP/1.1" 200 1234
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: PodLogs
+metadata:
+  name: nginx-pod-logs
+  namespace: default
+  labels:
+    instance: primary
+spec:
+  namespaceSelector:
+    matchNames:
+      - nginx
+  selector:
+    matchLabels:
+      app: nginx
+  pipelineStages:
+    - regex:
+        expression: >-
+          ^(?P<remote_addr>\S+) - \S+ \[.*?\] "(?P<method>\S+) \S+ \S+"
+          (?P<status_code>\d+) \d+.*$
+    - labels:
+        method:
+        status_code:

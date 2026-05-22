@@ -1,0 +1,38 @@
+# cadvisor-svc-monitor.yaml
+# ServiceMonitor for cAdvisor metrics (/metrics/cadvisor on port 10250)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cadvisor
+  namespace: default
+  labels:
+    instance: primary
+spec:
+  endpoints:
+    - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      honorLabels: true
+      interval: 60s
+      metricRelabelings:
+        - action: keep
+          regex: container_(cpu_usage_seconds_total|memory_working_set_bytes|fs_reads_bytes_total|fs_writes_bytes_total|network_receive_bytes_total|network_transmit_bytes_total)
+          sourceLabels:
+            - __name__
+        - action: drop
+          regex: container_cpu_usage_seconds_total{container=""}
+          sourceLabels:
+            - __name__
+            - container
+      path: /metrics/cadvisor
+      port: https-metrics
+      relabelings:
+        - sourceLabels: [__metrics_path__]
+          targetLabel: metrics_path
+      scheme: https
+      tlsConfig:
+        insecureSkipVerify: true
+  namespaceSelector:
+    matchNames:
+      - kube-system
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubelet
