@@ -1,6 +1,6 @@
 # Grafana LGTM Stack
 
-![Grafana LGTM](https://grafana.com/media/docs/grafana/screenshot-grafana-lgtm-stack.png)
+![Grafana LGTM](https://grafana.com/mw/_next/image/?url=https%3A%2F%2Fs3.amazonaws.com%2Fa-us.storyblok.com%2Ff%2F1022730%2F55a072e861%2Fgrafana-labs-lgtm-graphic.png&w=1152&q=75)
 
 Hands-on follow-along repository for the [DevOps Hobbies – Grafana LGTM Stack](https://www.youtube.com/playlist?list=PLYrn63eEqAzZL2TaS0pXXw-_DEl3SsAF_) YouTube series.
 
