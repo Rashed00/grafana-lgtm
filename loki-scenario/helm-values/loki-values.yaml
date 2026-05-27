@@ -13,11 +13,11 @@ loki:
   storage:
     type: s3
     bucketNames:
-      chunks: loki-chunks
-      ruler: loki-ruler
-      admin: loki-admin
+      chunks: chunks
+      ruler: ruler
+      admin: admin
     s3:
-      endpoint: http://loki-minio.loki.svc.cluster.local:9000
+      endpoint: loki-minio.loki.svc.cluster.local:9000
       region: us-east-1
       accessKeyId: minio-admin          # <-- replace with your MinIO user
       secretAccessKey: minio-password   # <-- replace with your MinIO password
@@ -84,13 +84,13 @@ minio:
   rootUser: minio-admin           # <-- match accessKeyId above
   rootPassword: minio-password    # <-- match secretAccessKey above
   buckets:
-    - name: loki-chunks
+    - name: chunks
       policy: none
       purge: false
-    - name: loki-ruler
+    - name: ruler
       policy: none
       purge: false
-    - name: loki-admin
+    - name: admin
       policy: none
       purge: false
   persistence:
